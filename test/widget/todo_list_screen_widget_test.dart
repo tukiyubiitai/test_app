@@ -23,6 +23,7 @@ void main() {
     // ダイアログが表示されるか確認
     expect(find.byType(AlertDialog), findsOneWidget);
   });
+
   testWidgets('追加ボタンでタスクが追加される', (WidgetTester tester) async {
     // テスト対象のウィジェットをレンダリング
     await tester.pumpWidget(MyApp());
@@ -34,7 +35,6 @@ void main() {
     final Finder addButtonFinder = find.widgetWithText(ElevatedButton, '追加');
     await tester.tap(addButtonFinder);    // ElevatedButton
     await tester.pumpAndSettle(); // 新しい画面やダイアログが完全に表示されるまで待つ
-    await tester.pump(); // タスク追加後の状態を反映させる
 
     expect(find.text('タスク1'), findsOneWidget);
 });
@@ -64,4 +64,37 @@ void main() {
     expect(find.text('タスク1'), findsNothing);
   });
 
+  testWidgets('タスクの完了/未完了の切り替えテスト', (WidgetTester tester) async {
+    // ToDoListScreenウィジェットをレンダリング
+    await tester.pumpWidget(MyApp());
+
+    // 新しいタスクを追加
+    await tester.tap(find.byIcon(Icons.add));
+    await tester.pump(); // ダイアログが開くのを待つ
+
+    // ダイアログ内のテキストフィールドにタスク名を入力
+    await tester.enterText(find.byType(TextField), 'テストタスク');
+    // "追加"ボタンをタップしてタスクをリストに追加
+    await tester.tap(find.widgetWithText(ElevatedButton, '追加'));
+    await tester.pump(); // タスク追加後の状態を反映させる
+
+    // タスクがリストに追加されたことを確認
+    // テキストを含むウィジェットが画面上に正確に一つ存在するかを検証
+    expect(find.text('テストタスク'), findsOneWidget);
+    expect(find.byType(ListTile), findsOneWidget);
+
+    // タスクをタップして完了状態をトグル
+    await tester.tap(find.text('テストタスク'));
+    await tester.pump(); // 状態の更新を反映させる
+
+    // タスクが完了状態（取り消し線が引かれた状態）になっていることを検証
+    final TextStyle textStyle = tester.widget<Text>(find.text('テストタスク')).style!;
+    expect(textStyle.decoration, TextDecoration.lineThrough);
+  });
+
+
 }
+
+/*
+widget testで追加ボタンでタスクが追加される、タスク削除ボタンをタップするとタスクが削除される、タスクの完了/未完了の切り替えテスト
+ */
